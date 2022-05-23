@@ -134,8 +134,7 @@ inline void matrix_set(u8* values, s32 width, s32 row, s32 col, u8 value)
     values[index] = value;
 }
 
-inline u8
-tetrino_get(const Tetrino* tetrino, s32 row, s32 col, s32 rotation)
+inline u8 tetrino_get(const Tetrino* tetrino, s32 row, s32 col, s32 rotation)
 {
     s32 side = tetrino->side;                                                               //tetrino pointer to side
     switch (rotation)
@@ -216,8 +215,7 @@ void clear_lines(u8* values, s32 width, s32 height, const u8* lines)
 }
 
 
-bool check_piece_valid(const Piece_State* piece,
-    const u8* board, s32 width, s32 height)
+bool check_piece_valid(const Piece_State* piece, const u8* board, s32 width, s32 height)
 {
     const Tetrino* tetrino = TETRINOS + piece->tetrino_index;
     assert(tetrino);
@@ -308,8 +306,7 @@ void spawn_piece(Game_State* game)
 }
 
 
-inline bool
-soft_drop(Game_State* game)
+inline bool soft_drop(Game_State* game)
 {
     ++game->piece.offset_row;
     if (!check_piece_valid(&game->piece, game->board, WIDTH, HEIGHT))
@@ -324,8 +321,7 @@ soft_drop(Game_State* game)
     return true;
 }
 
-inline s32
-compute_points(s32 level, s32 line_count)
+inline s32 compute_points(s32 level, s32 line_count)
 {
     switch (line_count)
     {
@@ -384,8 +380,7 @@ void update_game_start(Game_State* game, const Input_State* input)
     }
 }
 
-void
-update_game_gameover(Game_State* game, const Input_State* input)
+void update_game_gameover(Game_State* game, const Input_State* input)
 {
     if (input->da > 0)
     {
