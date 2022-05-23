@@ -7,6 +7,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
+#undef main
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -16,8 +17,6 @@ typedef int16_t s16;
 typedef int32_t s32;
 typedef float f32;
 typedef double f64;
-
-#undef main
 
 #include "colors.h"
 #include "blocks.h"
@@ -64,7 +63,6 @@ const u8 FRAMES_PER_DROP[] = {
 
 const f32 TARGET_SECONDS_PER_FRAME = 1.f / 60.f;
 
-
 enum Game_Phase
 {
     GAME_PHASE_START,
@@ -83,7 +81,7 @@ struct Piece_State
 
 struct Game_State
 {
-    u8 board[WIDTH * HEIGHT];                   //Playing board is an array, the dimensions of this matrix is WIDTH * HEIGHT
+    u8 board[WIDTH * HEIGHT];                   ////Playing board is an array, the dimensions of this matrix is WIDTH * HEIGHT
     u8 lines[HEIGHT];
     s32 pending_line_count;
 
@@ -136,28 +134,27 @@ inline void matrix_set(u8* values, s32 width, s32 row, s32 col, u8 value)
     values[index] = value;
 }
 
-inline u8 tetrino_get(const Tetrino* tetrino, s32 row, s32 col, s32 rotation)
+inline u8
+tetrino_get(const Tetrino* tetrino, s32 row, s32 col, s32 rotation)
 {
-    s32 side = tetrino->side;                                                        //tetrino pointer to side   
+    s32 side = tetrino->side;                                                               //tetrino pointer to side
     switch (rotation)
     {
     case 0:
-        return tetrino->data[row * side + col];                                      // in 0°
+        return tetrino->data[row * side + col];                                             // in 0°
     case 1:
-        return tetrino->data[(side - col - 1) * side + row];                         // in 90° turn to left
+        return tetrino->data[(side - col - 1) * side + row];                                // in 90° turn to left
     case 2:
-        return tetrino->data[(side - row - 1) * side + (side - col - 1)];            // in 180°
+        return tetrino->data[(side - row - 1) * side + (side - col - 1)];                   // in 180°
     case 3:
-        return tetrino->data[col * side + (side - row - 1)];                         // in 90° turn to right
+        return tetrino->data[col * side + (side - row - 1)];                                // in 90° turn to right
     }
-    return 0;                                                                        // Things in switch case command that have been returned in each case is data and size of data is size of these TETRINO in game when it rotates
+    return 0;                                                                               // Things in switch case command that have been returned in each case is data and size of data is size of these TETRINO in game when it rotates
 }
 
 inline u8 check_row_filled(const u8* values, s32 width, s32 row)
 {
-    for (s32 col = 0;
-        col < width;
-        ++col)
+    for (s32 col = 0; col < width; ++col)
     {
         if (!matrix_get(values, width, row, col))
         {
@@ -169,9 +166,7 @@ inline u8 check_row_filled(const u8* values, s32 width, s32 row)
 
 inline u8 check_row_empty(const u8* values, s32 width, s32 row)
 {
-    for (s32 col = 0;
-        col < width;
-        ++col)
+    for (s32 col = 0; col < width; ++col)
     {
         if (matrix_get(values, width, row, col))
         {
@@ -184,9 +179,7 @@ inline u8 check_row_empty(const u8* values, s32 width, s32 row)
 s32 find_lines(const u8* values, s32 width, s32 height, u8* lines_out)
 {
     s32 count = 0;
-    for (s32 row = 0;
-        row < height;
-        ++row)
+    for (s32 row = 0; row < height; ++row)
     {
         u8 filled = check_row_filled(values, width, row);
         lines_out[row] = filled;
@@ -198,11 +191,11 @@ s32 find_lines(const u8* values, s32 width, s32 height, u8* lines_out)
 void clear_lines(u8* values, s32 width, s32 height, const u8* lines)
 {
     s32 src_row = height - 1;
-    for ( s32 dst_row = height - 1; dst_row >= 0; dst_row-- )
+    for (s32 dst_row = height - 1; dst_row >= 0; --dst_row)
     {
         while (src_row >= 0 && lines[src_row])
         {
-            src_row--;
+            --src_row;
         }
 
         if (src_row < 0)
@@ -213,28 +206,35 @@ void clear_lines(u8* values, s32 width, s32 height, const u8* lines)
         {
             if (src_row != dst_row)
             {
-                memcpy(values + dst_row * width, values + src_row * width, width);
+                memcpy(values + dst_row * width,
+                    values + src_row * width,
+                    width);
             }
-            src_row--;
+            --src_row;
         }
     }
 }
 
 
-bool check_piece_valid(const Piece_State* piece, const u8* board, s32 width, s32 height)
+bool check_piece_valid(const Piece_State* piece,
+    const u8* board, s32 width, s32 height)
 {
-    const Tetrino* tetrino = TETRINOS + piece->tetrino_index;               // fetch index for tetrino
-    assert(tetrino);                                                        // to discover the logical error in tetrino
+    const Tetrino* tetrino = TETRINOS + piece->tetrino_index;
+    assert(tetrino);
 
-    for (s32 row = 0; row < tetrino->side; ++row)                           // loop through all of this cells that represent for tetrino
+    for (s32 row = 0;
+        row < tetrino->side;
+        ++row)
     {
-        for (s32 col = 0; col < tetrino->side; ++col)
+        for (s32 col = 0;
+            col < tetrino->side;
+            ++col)
         {
-            u8 value = tetrino_get(tetrino, row, col, piece->rotation);     // fetch the value of tetrino_get function
-            if (value > 0)                                                  // project these row and col to the coordination of the board
+            u8 value = tetrino_get(tetrino, row, col, piece->rotation);
+            if (value > 0)
             {
-                s32 board_row = piece->offset_row + row;                    // row is the local row
-                s32 board_col = piece->offset_col + col;                    // col is the local collum
+                s32 board_row = piece->offset_row + row;
+                s32 board_col = piece->offset_col + col;
                 if (board_row < 0)
                 {
                     return false;
@@ -251,7 +251,7 @@ bool check_piece_valid(const Piece_State* piece, const u8* board, s32 width, s32
                 {
                     return false;
                 }
-                if (matrix_get(board, width, board_row, board_col))         // the ondition of piece that make piece collide with the board
+                if (matrix_get(board, width, board_row, board_col))
                 {
                     return false;
                 }
@@ -308,12 +308,13 @@ void spawn_piece(Game_State* game)
 }
 
 
-inline bool soft_drop(Game_State* game)
+inline bool
+soft_drop(Game_State* game)
 {
     ++game->piece.offset_row;
     if (!check_piece_valid(&game->piece, game->board, WIDTH, HEIGHT))
     {
-        game-- ->piece.offset_row;
+        --game->piece.offset_row;
         merge_piece(game);
         spawn_piece(game);
         return false;
@@ -323,7 +324,8 @@ inline bool soft_drop(Game_State* game)
     return true;
 }
 
-inline s32 compute_points(s32 level, s32 line_count)
+inline s32
+compute_points(s32 level, s32 line_count)
 {
     switch (line_count)
     {
@@ -350,7 +352,7 @@ inline s32 max(s32 x, s32 y)
 
 inline s32 get_lines_for_next_level(s32 start_level, s32 level)
 {
-    s32 first_level_up_limit = min(  (start_level * 10 + 10), max(100, (start_level * 10 - 50) )  );
+    s32 first_level_up_limit = min((start_level * 10 + 10), max(100, (start_level * 10 - 50)));
     if (level == start_level)
     {
         return first_level_up_limit;
@@ -363,12 +365,12 @@ void update_game_start(Game_State* game, const Input_State* input)
 {
     if (input->dup > 0)
     {
-        game++ ->start_level;
+        ++game->start_level;
     }
 
     if (input->ddown > 0 && game->start_level > 0)
     {
-        game-- ->start_level;
+        --game->start_level;
     }
 
     if (input->da > 0)
@@ -382,7 +384,8 @@ void update_game_start(Game_State* game, const Input_State* input)
     }
 }
 
-void update_game_gameover(Game_State* game, const Input_State* input)
+void
+update_game_gameover(Game_State* game, const Input_State* input)
 {
     if (input->da > 0)
     {
@@ -398,8 +401,7 @@ void update_game_line(Game_State* game)
         game->line_count += game->pending_line_count;
         game->points += compute_points(game->level, game->pending_line_count);
 
-        s32 lines_for_next_level = get_lines_for_next_level(game->start_level,
-            game->level);
+        s32 lines_for_next_level = get_lines_for_next_level(game->start_level, game->level);
         if (game->line_count >= lines_for_next_level)
         {
             ++game->level;
@@ -409,25 +411,25 @@ void update_game_line(Game_State* game)
     }
 }
 
-void update_game_play( Game_State* game, const Input_State* input )
+void update_game_play(Game_State* game, const Input_State* input)
 {
-    Piece_State piece = game->piece;                                           // create a copy of a gamestate
-    if (input->dleft > 0)                                                      // if we press left
+    Piece_State piece = game->piece;
+    if (input->dleft > 0)
     {
-        piece.offset_col--;                                                    // decrease the offset_col
+        --piece.offset_col;
     }
-    if (input->dright > 0)                                                     // if we press right
+    if (input->dright > 0)
     {
-        piece.offset_col++;                                                    // increase the offset_col
+        ++piece.offset_col;
     }
-    if (input->dup > 0)                                                        // if we press up
+    if (input->dup > 0)
     {
-        piece.rotation = (piece.rotation + 1) % 4;                             // rotate piece and map it back to tetrino_get function
+        piece.rotation = (piece.rotation + 1) % 4;
     }
 
-    if (check_piece_valid(&piece, game->board, WIDTH, HEIGHT))                 // checking piece is valid
+    if (check_piece_valid(&piece, game->board, WIDTH, HEIGHT))
     {
-        game->piece = piece;                                                   // copy the modified state into the game state and update the game
+        game->piece = piece;
     }
 
     if (input->ddown > 0)
@@ -459,7 +461,7 @@ void update_game_play( Game_State* game, const Input_State* input )
     }
 }
 
-void update_game( Game_State* game, const Input_State* input )
+void update_game(Game_State* game, const Input_State* input)
 {
     switch (game->phase)
     {
@@ -478,7 +480,7 @@ void update_game( Game_State* game, const Input_State* input )
     }
 }
 
-void fill_rect( SDL_Renderer* renderer, s32 x, s32 y, s32 width, s32 height, Color color )                // Fill color to the piece
+void fill_rect(SDL_Renderer* renderer, s32 x, s32 y, s32 width, s32 height, Color color)
 {
     SDL_Rect rect = {};
     rect.x = x;
@@ -488,6 +490,7 @@ void fill_rect( SDL_Renderer* renderer, s32 x, s32 y, s32 width, s32 height, Col
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderFillRect(renderer, &rect);
 }
+
 
 void draw_rect(SDL_Renderer* renderer, s32 x, s32 y, s32 width, s32 height, Color color)
 {
@@ -502,12 +505,14 @@ void draw_rect(SDL_Renderer* renderer, s32 x, s32 y, s32 width, s32 height, Colo
 
 void draw_string(SDL_Renderer* renderer, TTF_Font* font, const char* text, s32 x, s32 y, Text_Align alignment, Color color)
 {
-    SDL_Color sdl_color = { color.r, color.g, color.b, color.a };
+    SDL_Color sdl_color = SDL_Color{ color.r, color.g, color.b, color.a };
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, sdl_color);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+
     SDL_Rect rect;
     rect.y = y;
-    rect.w = surface -> w;
-    rect.h = surface -> h;
+    rect.w = surface->w;
+    rect.h = surface->h;
     switch (alignment)
     {
     case TEXT_ALIGN_LEFT:
@@ -520,18 +525,18 @@ void draw_string(SDL_Renderer* renderer, TTF_Font* font, const char* text, s32 x
         rect.x = x - surface->w;
         break;
     }
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 
     SDL_RenderCopy(renderer, texture, 0, &rect);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 }
 
-void draw_cell(SDL_Renderer* renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y, bool outline = false)            // offset_x and offset_y is offset in the screen
+void draw_cell(SDL_Renderer* renderer, s32 row, s32 col, u8 value, s32 offset_x, s32 offset_y, bool outline = false)
 {
     Color base_color = BASE_COLORS[value];
     Color light_color = LIGHT_COLORS[value];
     Color dark_color = DARK_COLORS[value];
+
 
     s32 edge = GRID_SIZE / 8;
 
@@ -545,10 +550,8 @@ void draw_cell(SDL_Renderer* renderer, s32 row, s32 col, u8 value, s32 offset_x,
     }
 
     fill_rect(renderer, x, y, GRID_SIZE, GRID_SIZE, dark_color);
-    fill_rect(renderer, x + edge, y,
-        GRID_SIZE - edge, GRID_SIZE - edge, light_color);
-    fill_rect(renderer, x + edge, y + edge,
-        GRID_SIZE - edge * 2, GRID_SIZE - edge * 2, base_color);
+    fill_rect(renderer, x + edge, y, GRID_SIZE - edge, GRID_SIZE - edge, light_color);
+    fill_rect(renderer, x + edge, y + edge, GRID_SIZE - edge * 2, GRID_SIZE - edge * 2, base_color);
 }
 
 void draw_piece(SDL_Renderer* renderer, const Piece_State* piece, s32 offset_x, s32 offset_y, bool outline = false)
@@ -604,9 +607,10 @@ void render_game(const Game_State* game, SDL_Renderer* renderer, TTF_Font* font)
         {
             piece.offset_row++;
         }
-        piece.offset_row--;
+        --piece.offset_row;
 
         draw_piece(renderer, &piece, 0, margin_y, true);
+
     }
 
     if (game->phase == GAME_PHASE_LINE)
@@ -626,7 +630,8 @@ void render_game(const Game_State* game, SDL_Renderer* renderer, TTF_Font* font)
     {
         s32 x = WIDTH * GRID_SIZE / 2;
         s32 y = (HEIGHT * GRID_SIZE + margin_y) / 2;
-        draw_string(renderer, font, "GAME OVER", x, y, TEXT_ALIGN_CENTER, highlight_color);
+        draw_string(renderer, font, "GAME OVER",
+            x, y, TEXT_ALIGN_CENTER, highlight_color);
     }
     else if (game->phase == GAME_PHASE_START)
     {
@@ -655,16 +660,25 @@ int main()
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        return 1;                                                           // if this < 0 or we can say that it can't initialize, it's failed
+        return 1;
     }
 
     if (TTF_Init() < 0)
     {
-        return 2;                                                           // the same case with SDL_Init 
+        return 2;
     }
 
-    SDL_Window* window = SDL_CreateWindow("Tetris", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 300, 720, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);          // SDL_WINDOW_SHOWN make the window visible
-    SDL_Renderer* renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_Window* window = SDL_CreateWindow(
+        "Tetris",
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        300,
+        720,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(
+        window,
+        -1,
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     const char* font_name = "novem___.ttf";
     TTF_Font* font = TTF_OpenFont(font_name, 24);
