@@ -14,7 +14,7 @@ just Tetris
 	- Trò chơi sẽ không có điều kiện thắng, nhưng sẽ có cơ chế tính điểm,
 	  có thể chơi để có số điểm cao nhất
 
-3.
+3.https://drive.google.com/file/d/1MwF6RtWnJc5ngf8RqgvJJ-Ump_iohe7i/view
  
 4. Các kĩ thuật lập trình được sử dụng là mảng, con trỏ, struct, đồ họa
 
